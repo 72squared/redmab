@@ -59,16 +59,15 @@ class ThompsonMultiArmedBandit(object):
 
         return storage
 
-    def __init__(self, name, arms, connection=None, keyspace='TMAB', alpha=5, beta=5, pipe=None):
+    def __init__(self, name, arms, connection=None, keyspace='TMAB', alpha=5, beta=5):
 
         self.name = name
         self.alpha = alpha
         self.beta = beta
         self.arms = set(arms)
+        self.init_mean = self.beta_mean(success=0, count=0, alpha=self.alpha, beta=self.beta)
         self.storage = self.klass(connection, keyspace)
-
-        if arms is not None:
-            self._create(arms=arms, pipe=pipe)
+        #self._create(pipe=pipe)
 
     def _pipe(self, pipe=None, autoexec=False):
         return redpipe.pipeline(pipe=pipe, autoexec=autoexec)
@@ -81,39 +80,6 @@ class ThompsonMultiArmedBandit(object):
 
     def _count_k(self, arm):
         return '#{%s}:count' % arm
-
-    def _create(self, arms, pipe=None):
-        arms = set(arms)
-        ts = {'alpha': self.alpha, 'beta': self.beta, 'arms': ','.join(arms)}
-
-        mean = self.beta_mean(
-                0,
-                0,
-                self.alpha,
-                self.beta
-            )
-        for arm in arms:
-            ts[self._means_k(arm)] = mean
-
-        with self._pipe(pipe=pipe, autoexec=True) as p:
-            s = self.storage(pipe=p)
-            for k, v in ts.items():
-                s.hsetnx(self.name, k, str(v))
-            self.load(pipe=p)
-
-    def load(self, pipe=None):
-        with self._pipe(pipe=pipe, autoexec=True) as p:
-            s = self.storage(pipe=p)
-            arms = s.hget(self.name, 'arms')
-            alpha = s.hget(self.name, 'alpha')
-            beta = s.hget(self.name, 'beta')
-
-            def cb():
-                self.arms = set([k for k in arms.split(',') if len(k) > 0])
-                self.alpha = float(alpha)
-                self.beta = float(beta)
-
-            p.on_execute(cb)
 
     def delete(self, pipe=None):
         with self._pipe(pipe=pipe, autoexec=True) as p:
@@ -129,7 +95,7 @@ class ThompsonMultiArmedBandit(object):
             s = self.storage(pipe=p)
             arm_means = {k: s.hget(self.name, self._means_k(k)) for k in self.arms}
 
-        max_arm = max(arm_means.keys(), key=lambda k: float(arm_means[k]) if arm_means[k] else 0)
+        max_arm = max(arm_means.keys(), key=lambda k: float(arm_means[k]) if arm_means[k] else self.init_mean)
 
         with self._pipe(autoexec=True) as p:
             s = self.storage(pipe=p)

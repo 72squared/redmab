@@ -30,8 +30,7 @@ class BasicTestCase(unittest.TestCase):
                                                  keyspace=keyspace,
                                                  arms=arms,
                                                  alpha=alpha,
-                                                 beta=beta,
-                                                 pipe=pipe
+                                                 beta=beta
                                                  )
 
 
