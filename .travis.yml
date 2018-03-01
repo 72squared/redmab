@@ -1,0 +1,25 @@
+sudo: false
+language: python
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "nightly"
+  - "pypy"
+install:
+  - pipenv install
+
+
+script:
+  - coverage erase
+  - coverage run --source redmab -p test.py
+  - flake8 --exclude=./build,.venv*,.tox,dist
+
+after_success:
+  - coverage combine
+  - coveralls
+matrix:
+  allow_failures:
+    - python: "nightly"
