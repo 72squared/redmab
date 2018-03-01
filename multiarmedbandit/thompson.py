@@ -59,12 +59,12 @@ class ThompsonMultiArmedBandit(object):
 
         return storage
 
-    def __init__(self, name, connection=None, keyspace='TMAB', arms = None, alpha=5, beta=5, pipe=None):
+    def __init__(self, name, arms, connection=None, keyspace='TMAB', alpha=5, beta=5, pipe=None):
 
         self.name = name
         self.alpha = alpha
         self.beta = beta
-        self.arms = set()
+        self.arms = set(arms)
         self.storage = self.klass(connection, keyspace)
 
         if arms is not None:
@@ -87,16 +87,13 @@ class ThompsonMultiArmedBandit(object):
         arms = set(arms)
         ts = {'alpha': self.alpha, 'beta': self.beta, 'arms': ','.join(arms)}
 
-        for arm in arms:
-            ts[self._count_k(arm)] = 0
-            ts[self._success_k(arm)] = 0
-        for arm in arms:
-            mean = self.beta_mean(
+        mean = self.beta_mean(
                 0,
                 0,
-                ts['alpha'],
-                ts['beta']
+                self.alpha,
+                self.beta
             )
+        for arm in arms:
             ts[self._means_k(arm)] = mean
 
         with self._pipe(pipe=pipe, autoexec=True) as p:
@@ -220,8 +217,8 @@ class ThompsonMultiArmedBandit(object):
             future = redpipe.Future()
 
             def cb():
-                s = float(success)
-                c = float(count)
+                s = float(success or 0)
+                c = float(count or 0)
 
                 future.set(self.beta_mean(success=s, count=c, alpha=self.alpha, beta=self.beta))
 
