@@ -43,17 +43,18 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(mab.draw_multi(3), ['blue', 'green', 'red'])
         print(mab.stats())
 
-        mab.put('yellow', alpha=5, beta=5)
-        self.assertEqual(mab.draw(), 'yellow')
         mab.update_sucess('red')
         mab.update_sucess('green', 2)
         self.assertEqual(mab.draw(), 'green')
-
-        mab.remove('green')
+        self.assertEqual(mab.draw(), 'green')
+        self.assertEqual(mab.draw(), 'green')
         self.assertEqual(mab.draw(), 'red')
-        mab.disable('red')
-        self.assertEqual(mab.draw(), 'yellow')
-        mab.enable('red')
+        self.assertEqual(mab.draw(), 'green')
+        self.assertEqual(mab.draw(), 'red')
+        mab.update_sucess('green', 1)
+        self.assertEqual(mab.draw(), 'green')
+        self.assertEqual(mab.draw(), 'green')
+        self.assertEqual(mab.draw(), 'green')
         self.assertEqual(mab.draw(), 'red')
 
 

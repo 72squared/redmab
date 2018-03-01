@@ -82,7 +82,6 @@ class ThompsonMultiArmedBandit(object):
     def _count_k(self, arm):
         return '#{%s}:count' % arm
 
-
     def _create(self, arms, pipe=None):
         arms = set(arms)
         ts = {'alpha': self.alpha, 'beta': self.beta, 'arms': ','.join(arms)}
@@ -121,45 +120,6 @@ class ThompsonMultiArmedBandit(object):
             s = self.storage(pipe=p)
             s.delete(self.name)
 
-    def put(self, arm, alpha=None, beta=None, pipe=None):
-        ts = {self._count_k(arm): 0, self._success_k(arm): 0.0}
-
-        if alpha is not None:
-            self.alpha = alpha
-            ts['alpha'] = alpha
-
-        if beta is not None:
-            self.beta = beta
-            ts['beta'] = beta
-
-        self.arms.add(arm)
-        with self._pipe(pipe=pipe, autoexec=True) as p:
-            s = self.storage(pipe=p)
-            for k, v in ts.items():
-                s.hsetnx(self.name, k, str(v))
-            s.hset(self.name, 'arms', ','.join(self.arms))
-            mean = self.mean(arm=arm, pipe=p)
-
-            def cb():
-                with self._pipe(autoexec=True) as pp:
-                    self.update_mean(arm, mean=mean, pipe=pp)
-                    self.load(pipe=pp)
-
-            p.on_execute(cb)
-
-    def remove(self, arm, pipe=None):
-        with self._pipe(pipe=pipe, autoexec=True) as p:
-            self.arms.remove(arm)
-            s = self.storage(pipe=p)
-            s.hset(self.name, 'arms', ','.join(self.arms))
-            s.hdel(self.name, self._success_k(arm))
-            s.hdel(self.name, self._count_k(arm))
-
-    def disable(self, arm, pipe=None):
-        with self._pipe(pipe=pipe, autoexec=True) as p:
-            s = self.storage(pipe=p)
-            s.hdel(self.name, self._means_k(arm))
-
     def draw(self, pipe=None):
         if self.USE_LUA:
             return self.storage(pipe=pipe).eval(self.name, draw_lua, *[a for a in self.arms])
@@ -186,8 +146,6 @@ class ThompsonMultiArmedBandit(object):
 
     def draw_multi(self, times):
         return [self.draw() for _ in range(times)]
-
-
 
     def update_sucess(self, arm, reward=1.0):
         with self._pipe(autoexec=True) as p:
