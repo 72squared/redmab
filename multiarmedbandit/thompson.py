@@ -44,7 +44,7 @@ return arm
 """
 
 class ThompsonMultiArmedBandit(object):
-    USE_LUA = True
+    USE_LUA = False
 
     @classmethod
     def beta_mean(cls, success, count, alpha, beta):
@@ -59,16 +59,16 @@ class ThompsonMultiArmedBandit(object):
 
         return storage
 
-    def __init__(self, name, connection=None, keyspace='TMAB', arms = None, options=None, pipe=None):
+    def __init__(self, name, connection=None, keyspace='TMAB', arms = None, alpha=5, beta=5, pipe=None):
 
         self.name = name
-        self.alpha = 5
-        self.beta = 5
+        self.alpha = alpha
+        self.beta = beta
         self.arms = set()
         self.storage = self.klass(connection, keyspace)
 
         if arms is not None:
-            self.create(arms=arms, options=options, pipe=pipe)
+            self._create(arms=arms, pipe=pipe)
 
     def _pipe(self, pipe=None, autoexec=False):
         return redpipe.pipeline(pipe=pipe, autoexec=autoexec)
@@ -83,18 +83,13 @@ class ThompsonMultiArmedBandit(object):
         return '#{%s}:count' % arm
 
 
-    def create(self, arms, options=None, pipe=None):
+    def _create(self, arms, pipe=None):
         arms = set(arms)
-        if options is None:
-            options = {}
         ts = {'alpha': self.alpha, 'beta': self.beta, 'arms': ','.join(arms)}
 
         for arm in arms:
             ts[self._count_k(arm)] = 0
             ts[self._success_k(arm)] = 0
-
-        ts.update(options)
-
         for arm in arms:
             mean = self.beta_mean(
                 0,
@@ -129,11 +124,16 @@ class ThompsonMultiArmedBandit(object):
             s = self.storage(pipe=p)
             s.delete(self.name)
 
-    def put(self, arm, options=None, pipe=None):
-        if options is None:
-            options = {}
+    def put(self, arm, alpha=None, beta=None, pipe=None):
         ts = {self._count_k(arm): 0, self._success_k(arm): 0.0}
-        ts.update(options)
+
+        if alpha is not None:
+            self.alpha = alpha
+            ts['alpha'] = alpha
+
+        if beta is not None:
+            self.beta = beta
+            ts['beta'] = beta
 
         self.arms.add(arm)
         with self._pipe(pipe=pipe, autoexec=True) as p:

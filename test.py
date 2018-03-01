@@ -22,27 +22,28 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         clean()
 
-    def mab(self, name='test', connection='test', keyspace='test', arms=None, options=None, pipe=None):
+    def mab(self, name='test', connection='test', keyspace='test', arms=None,
+            alpha=5, beta=5, pipe=None):
 
         return multiarmedbandit.MultiArmedBandit(name=name,
                                                  connection=connection,
                                                  keyspace=keyspace,
                                                  arms=arms,
-                                                 options=options,
+                                                 alpha=alpha,
+                                                 beta=beta,
                                                  pipe=pipe
                                                  )
 
 
     def test(self):
-        mab = self.mab()
-        mab.create(['red', 'green', 'blue'])
+        mab = self.mab(arms=['red', 'green', 'blue'], alpha=10, beta=10)
         self.assertEqual(mab.draw(), 'blue')
         self.assertEqual(mab.draw(), 'green')
         self.assertEqual(mab.draw(), 'red')
         self.assertEqual(mab.draw_multi(3), ['blue', 'green', 'red'])
         print(mab.stats())
 
-        mab.put('yellow', {'alpha': 5, 'beta': 5})
+        mab.put('yellow', alpha=5, beta=5)
         self.assertEqual(mab.draw(), 'yellow')
         mab.update_sucess('red')
         mab.update_sucess('green', 2)
