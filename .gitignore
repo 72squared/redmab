@@ -1,0 +1,9 @@
+.*
+*~
+*.pyc
+*.pem
+*.tgz
+*.des3
+/scripts/aws/inventory*
+*.retry
+
