@@ -34,16 +34,8 @@ redis.call('HINCRBY', name, "#{" .. arm .. "}:count", 1)
 mean = tonumber(result["#{" .. arm .. "}:mean"])
 local success = tonumber(result["#{" .. arm .. "}:success"] or 0)
 local count = tonumber(result["#{" .. arm .. "}:count"] or 0) + 1
-local alpha = tonumber(result["#{" .. arm .. "}:alpha"] or 0)
-local beta = tonumber(result["#{" .. arm .. "}:beta"] or 0)
-
-if alpha <= 0 then
-    alpha = tonumber(result["alpha"])
-end
-
-if beta <= 0 then
-    beta = tonumber(result["beta"])
-end
+local alpha = tonumber(result["alpha"] or 0)
+local beta = tonumber(result["beta"] or 0)
 
 mean = 1 / (1 + (count - success) + beta / (success + alpha))
 
@@ -90,11 +82,6 @@ class ThompsonMultiArmedBandit(object):
     def _count_k(self, arm):
         return '#{%s}:count' % arm
 
-    def _alpha_k(self, arm):
-        return '#{%s}:alpha' % arm
-
-    def _beta_k(self, arm):
-        return '#{%s}:beta' % arm
 
     def create(self, arms, options=None, pipe=None):
         arms = set(arms)
@@ -105,8 +92,6 @@ class ThompsonMultiArmedBandit(object):
         for arm in arms:
             ts[self._count_k(arm)] = 0
             ts[self._success_k(arm)] = 0
-            ts[self._alpha_k(arm)] = 0
-            ts[self._beta_k(arm)] = 0
 
         ts.update(options)
 
@@ -172,8 +157,6 @@ class ThompsonMultiArmedBandit(object):
             s.hset(self.name, 'arms', ','.join(self.arms))
             s.hdel(self.name, self._success_k(arm))
             s.hdel(self.name, self._count_k(arm))
-            s.hdel(self.name, self._alpha_k(arm))
-            s.hdel(self.name, self._beta_k(arm))
 
     def disable(self, arm, pipe=None):
         with self._pipe(pipe=pipe, autoexec=True) as p:
@@ -233,18 +216,14 @@ class ThompsonMultiArmedBandit(object):
             s = self.storage(pipe=p)
             success = s.hget(self.name, self._success_k(arm))
             count = s.hget(self.name, self._count_k(arm))
-            alpha = s.hget(self.name, self._alpha_k(arm))
-            beta = s.hget(self.name, self._beta_k(arm))
 
             future = redpipe.Future()
 
             def cb():
                 s = float(success)
                 c = float(count)
-                a = float(alpha or 0) or self.alpha
-                b = float(beta or 0) or self.beta
 
-                future.set(self.beta_mean(success=s, count=c, alpha=a, beta=b))
+                future.set(self.beta_mean(success=s, count=c, alpha=self.alpha, beta=self.beta))
 
             p.on_execute(cb)
 
