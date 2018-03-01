@@ -25,7 +25,7 @@ cleancov:
 	-coverage erase
 
 cleanmeta:
-	-rm -rf redpipe.egg-info/
+	-rm -rf redmab.egg-info/
 
 cleandocs:
 	-rm -rf docs/_build

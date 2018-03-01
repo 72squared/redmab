@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Utility for grabbing the redpipe version string from the VERSION file.
+Utility for grabbing the redmab version string from the VERSION file.
 """
 
 import os

@@ -26,7 +26,7 @@ Documentation
 
 
 .. |BuildStatus| image:: https://travis-ci.org/72squared/redmab.svg?branch=master
-    :target: https://travis-ci.org/72squared/redpipe
+    :target: https://travis-ci.org/72squared/redmab
 
 .. |CoverageStatus| image:: https://coveralls.io/repos/github/72squared/redmab/badge.svg?branch=master
     :target: https://coveralls.io/github/72squared/redmab?branch=master
