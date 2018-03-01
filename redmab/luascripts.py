@@ -1,4 +1,3 @@
-# still in progress, do not use.
 draw_lua = """
 local name = KEYS[1]
 local alpha = tonumber(ARGV[1])
@@ -48,14 +47,15 @@ redis.call('HSET', name, "#{" .. arm .. "}:mean", mean)
 return arm
 """
 
-
 update_success_lua = """
 local name = KEYS[1]
 local arm = ARGV[1]
 local reward = tonumber(ARGV[2])
 local alpha = tonumber(ARGV[3])
 local beta = tonumber(ARGV[4])
-local success = tonumber(redis.call('HINCRBYFLOAT', name, "#{" .. arm .. "}:success", reward))
+local success = tonumber(
+    redis.call('HINCRBYFLOAT', name, "#{" .. arm .. "}:success", reward))
 local count = tonumber(redis.call('HGET', name, "#{" .. arm .. "}:count"))
-redis.call('HSET', name, "#{" .. arm .. "}:mean", 1 / (1 + (count - success + beta) / (success + alpha)))
+local mean = 1 / (1 + (count - success + beta) / (success + alpha))
+redis.call('HSET', name, "#{" .. arm .. "}:mean", mean)
 """

@@ -8,9 +8,12 @@ name = "pypi"
 [dev-packages]
 
 "flake8" = "*"
+tox = "*"
+coverage = "*"
+redislite = "*"
 
 
 [packages]
 
 redpipe = "*"
-redislite = "*"
+redis = "*"

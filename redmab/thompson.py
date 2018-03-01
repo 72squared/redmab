@@ -3,22 +3,22 @@ import redpipe
 from . import luascripts
 
 
-def create_storage(keysp='MAB', conn=None):
+def create_storage(keysp='MAB', conn='test'):
     class storage(redpipe.Hash):
-        keyspace = conn
-        connection = keysp
+        keyspace = keysp
+        connection = conn
 
     return storage
 
 
-class ThompsonMultiArmedBandit(object):
-
-    def __init__(self, name, arms, storage=None, alpha=5, beta=5, expires=None):
+class ThompsonSamplingMultiArmedBandit(object):
+    def __init__(self, name, arms, storage=None, alpha=5, beta=5,
+                 expires=None):
 
         self.name = name
         self.alpha = alpha
         self.beta = beta
-        self.arms = set(arms)
+        self.arms = sorted(set(arms))
         self.expires = expires
         if storage is None:
             storage = create_storage()
@@ -37,10 +37,18 @@ class ThompsonMultiArmedBandit(object):
     def draw(self, pipe=None):
         with self._pipe(pipe=pipe) as p:
             s = self.storage(pipe=p)
-            res = s.eval(self.name, luascripts.draw_lua, self.alpha, self.beta, *[a for a in self.arms])
+            response = redpipe.Future()
+            result = s.eval(self.name, luascripts.draw_lua, self.alpha,
+                            self.beta, *[a for a in self.arms])
             if self.expires:
                 s.expire(self.name, self.expires)
-            return res
+
+            def cb():
+                response.set(s.valueparse.decode(result))
+
+            p.on_execute(cb)
+
+            return response
 
     def draw_multi(self, times, pipe=None):
         with self._pipe(pipe=pipe) as p:
@@ -49,7 +57,8 @@ class ThompsonMultiArmedBandit(object):
     def update_sucess(self, arm, reward=1.0, pipe=None):
         with self._pipe(pipe=pipe) as p:
             s = self.storage(pipe=p)
-            s.eval(self.name, luascripts.update_success_lua, arm, reward, self.alpha, self.beta)
+            s.eval(self.name, luascripts.update_success_lua, arm, reward,
+                   self.alpha, self.beta)
             if self.expires:
                 s.expire(self.name, self.expires)
 

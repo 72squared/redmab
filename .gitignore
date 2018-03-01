@@ -1,9 +1,10 @@
 .*
-*~
 *.pyc
-*.pem
-*.tgz
-*.des3
-/scripts/aws/inventory*
-*.retry
+.DS_Store
+*.diff
+/__pycache__
+/build
+/*.egg-info
+/dist
+/docs/_build/*
 

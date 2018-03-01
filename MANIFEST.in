@@ -1,0 +1,7 @@
+exclude *.py
+include setup.py
+include README.rst
+include LICENSE
+include redmab/VERSION
+include docs/authors.rst
+include docs/release-notes.rst
