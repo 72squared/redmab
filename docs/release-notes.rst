@@ -1,3 +1,9 @@
+0.0.4 (March 15, 2018)
+----------------------
+
+* fixing typo in update_success method.
+
+
 0.0.3 (March 15, 2018)
 ----------------------
 

@@ -54,7 +54,7 @@ class ThompsonSamplingMultiArmedBandit(object):
         with self._pipe(pipe=pipe) as p:
             return [self.draw(pipe=p) for _ in range(times)]
 
-    def update_sucess(self, arm, reward=1.0, pipe=None):
+    def update_success(self, arm, reward=1.0, pipe=None):
         with self._pipe(pipe=pipe) as p:
             s = self.storage(pipe=p)
             s.eval(luascripts.update_success_lua, 1, self.name, arm, reward,
