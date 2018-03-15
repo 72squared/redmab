@@ -1,2 +1,2 @@
-redpipe>=2.0.0"
+redpipe>=2.0.0
 redis
