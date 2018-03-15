@@ -1,0 +1,8 @@
+coverage >= 3.7.1
+tox
+flake8
+python-coveralls
+redislite>=3.0.271
+pytest-benchmark
+twine
+wheel
