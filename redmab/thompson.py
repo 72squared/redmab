@@ -38,7 +38,7 @@ class ThompsonSamplingMultiArmedBandit(object):
         with self._pipe(pipe=pipe) as p:
             s = self.storage(pipe=p)
             response = redpipe.Future()
-            result = s.eval(self.name, luascripts.draw_lua, self.alpha,
+            result = s.eval(luascripts.draw_lua, 1, self.name, self.alpha,
                             self.beta, *[a for a in self.arms])
             if self.expires:
                 s.expire(self.name, self.expires)
@@ -57,7 +57,7 @@ class ThompsonSamplingMultiArmedBandit(object):
     def update_sucess(self, arm, reward=1.0, pipe=None):
         with self._pipe(pipe=pipe) as p:
             s = self.storage(pipe=p)
-            s.eval(self.name, luascripts.update_success_lua, arm, reward,
+            s.eval(luascripts.update_success_lua, 1, self.name, arm, reward,
                    self.alpha, self.beta)
             if self.expires:
                 s.expire(self.name, self.expires)

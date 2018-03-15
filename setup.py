@@ -59,7 +59,7 @@ setup(
         'Environment :: Web Environment',
         'Operating System :: POSIX'],
     license='MIT',
-    install_requires=['redpipe'],
+    install_requires=['redpipe>=2.0.0'],
     tests_require=['redislite>=3.0.271', 'tox', 'coverage'],
     include_package_data=True,
     long_description=readme + '\n\n' + history,
